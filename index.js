@@ -65,11 +65,14 @@ async function run() {
           // Convert ApplicationDeadline to Date format
           {
             $addFields: {
-              applicationDeadlineDate: { $toDate: "$applicationDeadline" },
+              postDateISO: {
+                $toDate: "$postDate",
+              },
             },
           },
+
           // Sort by both applicationFees and applicationDeadline
-          { $sort: { applicationFees: 1, applicationDeadlineDate: -1 } },
+          { $sort: { postDateISO: -1, applicationFees: 1 } },
           { $limit: 6 },
         ])
         .toArray();
