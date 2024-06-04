@@ -4,7 +4,7 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const cors = require("cors");
 
 require("dotenv").config();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5500;
 
 // middleware
 app.use(cors());
@@ -31,6 +31,10 @@ async function run() {
     //   users collection
     const userCollection = client.db("AwsScholars").collection("users");
 
+    const scholarshipCollection = client
+      .db("AwsScholars")
+      .collection("scholarships");
+
     //   USERS RELATED API
     //   post users in db
     app.post("/users", async (req, res) => {
@@ -52,6 +56,27 @@ async function run() {
       }
       const result = await userCollection.insertOne(user);
       res.send(result);
+    });
+
+    // scholarship related api
+    app.get("/top-sholarship", async (req, res) => {
+      const result = await scholarshipCollection
+        .aggregate([
+          // Convert ApplicationDeadline to Date format
+          {
+            $addFields: {
+              applicationDeadlineDate: { $toDate: "$applicationDeadline" },
+            },
+          },
+          // Sort by both applicationFees and applicationDeadline
+          { $sort: { applicationFees: 1, applicationDeadlineDate: -1 } },
+          { $limit: 6 },
+        ])
+        .toArray();
+      res.send(result);
+    });
+    app.get("/", (req, res) => {
+      res.send("AwsScholars are running");
     });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
