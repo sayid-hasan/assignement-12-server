@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 
 require("dotenv").config();
@@ -77,6 +77,16 @@ async function run() {
           { $limit: 6 },
         ])
         .toArray();
+      res.send(result);
+    });
+    // get single scholarship data v
+    app.get("/scholarships/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      console.log(query, id);
+      const result = await scholarshipCollection.findOne(query);
       res.send(result);
     });
 
