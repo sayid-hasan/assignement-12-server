@@ -30,6 +30,7 @@ async function run() {
 
     //   users collection
     const userCollection = client.db("AwsScholars").collection("users");
+    const reviewCollection = client.db("AwsScholars").collection("reviews");
 
     const scholarshipCollection = client
       .db("AwsScholars")
@@ -78,6 +79,19 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    // review related api
+    // get top 9
+    app.get("/top-reviews", async (req, res) => {
+      const result = await reviewCollection
+        .aggregate([
+          { $sort: { ratingPoint: -1 } }, // Sort by ratingPoint in descending order
+          { $limit: 9 }, // Limit to top 9 reviews])
+        ])
+        .toArray();
+      res.send(result);
+    });
+    app.get();
     app.get("/", (req, res) => {
       res.send("AwsScholars are running");
     });
