@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5500;
 
 // middleware
@@ -101,7 +102,25 @@ async function run() {
         .toArray();
       res.send(result);
     });
-    app.get();
+    // PAYMENT RELATED APIS
+    // PAYMENT INTENT
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      console.log("inside paymentIntent", req.body);
+      const amount = parseInt(price * 100);
+      console.log(amount, "amount inside the intent");
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
     app.get("/", (req, res) => {
       res.send("AwsScholars are running");
     });
