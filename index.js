@@ -32,6 +32,7 @@ async function run() {
     //   users collection
     const userCollection = client.db("AwsScholars").collection("users");
     const reviewCollection = client.db("AwsScholars").collection("reviews");
+    const paymentCollection = client.db("AwsScholars").collection("payments");
 
     const scholarshipCollection = client
       .db("AwsScholars")
@@ -102,6 +103,15 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    // get reviews for specific id
+    app.get("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        scholarshipId: id,
+      };
+      const scholarshipReview = await reviewCollection.find(query).toArray();
+      res.send(scholarshipReview);
+    });
     // PAYMENT RELATED APIS
     // PAYMENT INTENT
     app.post("/create-payment-intent", async (req, res) => {
@@ -119,6 +129,15 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    // save payment history
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      console.log(payment);
+      const paymentResult = await paymentCollection.insertOne(payment);
+
+      res.send(paymentResult);
     });
 
     app.get("/", (req, res) => {
