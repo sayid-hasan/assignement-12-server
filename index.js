@@ -33,6 +33,9 @@ async function run() {
     const userCollection = client.db("AwsScholars").collection("users");
     const reviewCollection = client.db("AwsScholars").collection("reviews");
     const paymentCollection = client.db("AwsScholars").collection("payments");
+    const appliedScholarshipCollection = client
+      .db("AwsScholars")
+      .collection("appliedScholarships");
 
     const scholarshipCollection = client
       .db("AwsScholars")
@@ -138,6 +141,26 @@ async function run() {
       const paymentResult = await paymentCollection.insertOne(payment);
 
       res.send(paymentResult);
+    });
+    // save applicant details as appliedScholarships
+    app.post("/appliedScholarship", async (req, res) => {
+      const applieSchoalrshipData = req.body;
+      const query = {
+        applicantPhone: applieSchoalrshipData.applicantPhone,
+        scholarshipId: applieSchoalrshipData.scholarshipId,
+      };
+      const isExist = await appliedScholarshipCollection.findOne(query);
+      if (isExist) {
+        return res
+          .status(403)
+          .send({ message: "Applicant already applied for this schoalrship" });
+      }
+      console.log(applieSchoalrshipData);
+      const result = await appliedScholarshipCollection.insertOne(
+        applieSchoalrshipData
+      );
+
+      res.send(result);
     });
 
     app.get("/", (req, res) => {
