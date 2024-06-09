@@ -4,7 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const ImageKit = require("imagekit");
 const fs = require("fs");
-
+var jwt = require("jsonwebtoken");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5500;
@@ -12,6 +12,8 @@ const port = process.env.PORT || 5500;
 // middleware
 app.use(cors());
 app.use(express.json());
+
+// custom middleware
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.grteoyu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -25,6 +27,25 @@ const client = new MongoClient(uri, {
 });
 
 // app
+
+// custom middleware
+// custom midlw=eware verify token
+const verifytoken = (req, res, next) => {
+  // console.log("inside verifytoken middleware", req.headers.authorization);
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: "unauthorised access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  // console.log("get token", token);
+  jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorised access" });
+    }
+    req.decoded = decoded;
+    console.log("from verifytoken decoded", decoded);
+    next();
+  });
+};
 
 async function run() {
   try {
@@ -42,6 +63,34 @@ async function run() {
     const scholarshipCollection = client
       .db("AwsScholars")
       .collection("scholarships");
+
+    // custom middleware verifyAdmin
+    // verify admin after checking verfytoken
+    const verifyadmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      console.log("verify admin ", email);
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      console.log("inside verifyadmin", isAdmin);
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
+    // jwt related api
+
+    app.post("/jwt", async (req, res) => {
+      const userinfo = req.body;
+      console.log("inside jwt", userinfo);
+      const token = await jwt.sign(userinfo, process.env.ACCESS_SECRET_TOKEN, {
+        expiresIn: "4h",
+      });
+      // console.log(token);
+
+      res.send({ token });
+    });
 
     //   USERS RELATED API
     //   post users in db
@@ -87,7 +136,7 @@ async function run() {
       res.send(result);
     });
     // get single scholarship data v
-    app.get("/scholarships/:id", async (req, res) => {
+    app.get("/scholarships/:id", verifytoken, async (req, res) => {
       const id = req.params.id;
       const query = {
         _id: new ObjectId(id),
@@ -109,7 +158,7 @@ async function run() {
       res.send(result);
     });
     // get reviews for specific id
-    app.get("/reviews/:id", async (req, res) => {
+    app.get("/reviews/:id", verifytoken, async (req, res) => {
       const id = req.params.id;
       const query = {
         scholarshipId: id,
