@@ -135,6 +135,23 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    // GET ALL SCHOLARSHIP FOR ALL SCHOALRSHIP PAHGE
+    app.get("/allsholarship", async (req, res) => {
+      const searchQuery = req.query?.search;
+      console.log("from all scholarship", searchQuery);
+      const query = {};
+
+      if (searchQuery) {
+        query.$or = [
+          { scholarshipName: { $regex: searchQuery, $options: "i" } },
+          { universityName: { $regex: searchQuery, $options: "i" } },
+          { degree: { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+
+      const result = await scholarshipCollection.find(query).toArray();
+      res.send(result);
+    });
     // get single scholarship data v
     app.get("/scholarships/:id", verifytoken, async (req, res) => {
       const id = req.params.id;
@@ -225,6 +242,33 @@ async function run() {
         await imagekit.getAuthenticationParameters();
       console.log(authenticationParameters);
       res.send(authenticationParameters);
+    });
+
+    // admin related apis
+    // check if user is admin
+
+    // check admin
+    app.get("/users/admin/:email", verifytoken, async (req, res) => {
+      const email = req.params.email;
+      console.log("inside useAdmin route", req.decoded.email);
+      console.log("inside useAdmin params", email);
+
+      if (email !== req.decoded.email) {
+        return res.status(401).send({
+          message: "Unauthorize access",
+        });
+      }
+      const query = {
+        email: email,
+      };
+      console.log(query);
+      const user = await userCollection.findOne(query);
+      console.log("inside useAdmin route", user);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+      res.send({ admin });
     });
 
     app.get("/", (req, res) => {
