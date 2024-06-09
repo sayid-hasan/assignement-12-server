@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
+const ImageKit = require("imagekit");
+const fs = require("fs");
 
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -161,6 +163,19 @@ async function run() {
       );
 
       res.send(result);
+    });
+
+    // imagekit image Upload getsignature
+    app.get("/get-signature", async (req, res) => {
+      var imagekit = new ImageKit({
+        publicKey: process.env.IMAGEKIT_PK,
+        privateKey: process.env.IMAGEKIT_SK,
+        urlEndpoint: "https://ik.imagekit.io/sayidImage34/",
+      });
+      const authenticationParameters =
+        await imagekit.getAuthenticationParameters();
+      console.log(authenticationParameters);
+      res.send(authenticationParameters);
     });
 
     app.get("/", (req, res) => {
