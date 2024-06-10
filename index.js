@@ -138,7 +138,9 @@ async function run() {
     // GET ALL SCHOLARSHIP FOR ALL SCHOALRSHIP PAHGE
     app.get("/allsholarship", async (req, res) => {
       const searchQuery = req.query?.search;
-      console.log("from all scholarship", searchQuery);
+      const page = parseInt(req.query?.page) - 1;
+      const size = parseInt(req.query?.size);
+      console.log("from all scholarship", searchQuery, page, size);
       const query = {};
 
       if (searchQuery) {
@@ -148,9 +150,23 @@ async function run() {
           { degree: { $regex: searchQuery, $options: "i" } },
         ];
       }
+      let result;
+      if (page || size) {
+        result = await scholarshipCollection
+          .find(query)
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+      } else {
+        result = await scholarshipCollection.find(query).toArray();
+      }
 
-      const result = await scholarshipCollection.find(query).toArray();
       res.send(result);
+    });
+    // get count for pagination
+    app.get("/scholarship-count", async (req, res) => {
+      const count = await scholarshipCollection.countDocuments();
+      res.send({ count });
     });
     // get single scholarship data v
     app.get("/scholarships/:id", verifytoken, async (req, res) => {
