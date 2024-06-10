@@ -140,7 +140,7 @@ async function run() {
       const searchQuery = req.query?.search;
       const page = parseInt(req.query?.page) - 1;
       const size = parseInt(req.query?.size);
-      console.log("from all scholarship", searchQuery, page, size);
+      // console.log("from all scholarship", searchQuery, page, size);
       const query = {};
 
       if (searchQuery) {
@@ -165,7 +165,16 @@ async function run() {
     });
     // get count for pagination
     app.get("/scholarship-count", async (req, res) => {
-      const count = await scholarshipCollection.countDocuments();
+      const searchQuery = req.query?.search;
+      const query = {};
+      if (searchQuery) {
+        query.$or = [
+          { scholarshipName: { $regex: searchQuery, $options: "i" } },
+          { universityName: { $regex: searchQuery, $options: "i" } },
+          { degree: { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+      const count = await scholarshipCollection.countDocuments(query);
       res.send({ count });
     });
     // get single scholarship data v
