@@ -208,6 +208,26 @@ async function run() {
       const scholarshipReview = await reviewCollection.find(query).toArray();
       res.send(scholarshipReview);
     });
+    // GET AVARAGE RATING FROM REVIEW BASED ON SCHOLARSHIP ID
+    app.get("/average-rating/:scholarshipID", async (req, res) => {
+      const scholarshipID = req.params?.scholarshipID;
+
+      // Aggregation to calculate the average rating for a specific scholarshipID
+      const result = await reviewCollection
+        .aggregate([
+          {
+            $match: {
+              scholarshipId: scholarshipID,
+            },
+          },
+          { $group: { _id: null, averageRating: { $avg: "$ratingPoint" } } },
+        ])
+        .toArray();
+
+      const averageRating = result.length ? result[0]?.averageRating : 0;
+      console.log("in avg rating", averageRating);
+      res.send({ averageRating });
+    });
     // PAYMENT RELATED APIS
     // PAYMENT INTENT
     app.post("/create-payment-intent", async (req, res) => {
