@@ -31,12 +31,12 @@ const client = new MongoClient(uri, {
 // custom middleware
 // custom midlw=eware verify token
 const verifytoken = (req, res, next) => {
-  // console.log("inside verifytoken middleware", req.headers.authorization);
+  console.log("inside verifytoken middleware", req.headers.authorization);
   if (!req.headers.authorization) {
     return res.status(401).send({ message: "unauthorised access" });
   }
   const token = req.headers.authorization.split(" ")[1];
-  // console.log("get token", token);
+  console.log("get token", token);
   jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) => {
     if (err) {
       return res.status(401).send({ message: "unauthorised access" });
@@ -255,6 +255,26 @@ async function run() {
 
       res.send(paymentResult);
     });
+
+    // get all applied application based on specific user id
+    app.get("/appliedScholarship/:email", verifytoken, async (req, res) => {
+      const email = req.params?.email;
+      const query = {
+        userEmail: email,
+      };
+      const result = await appliedScholarshipCollection.find(query).toArray();
+      res.send(result);
+    });
+    // delete applied scholarship
+    app.delete("/appliedScholarship/:id", verifytoken, async (req, res) => {
+      const id = req.params?.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await appliedScholarshipCollection.deleteOne(query);
+      res.send(result);
+    });
+    // dlete applied
     // save applicant details as appliedScholarships
     app.post("/appliedScholarship", async (req, res) => {
       const applieSchoalrshipData = req.body;
@@ -293,28 +313,33 @@ async function run() {
     // check if user is admin
 
     // check admin
-    app.get("/users/admin/:email", verifytoken, async (req, res) => {
-      const email = req.params.email;
-      console.log("inside useAdmin route", req.decoded.email);
-      console.log("inside useAdmin params", email);
+    app.get(
+      "/users/admin/:email",
+      verifytoken,
 
-      if (email !== req.decoded.email) {
-        return res.status(401).send({
-          message: "Unauthorize access",
-        });
+      async (req, res) => {
+        const email = req.params.email;
+        console.log("inside useAdmin route", req.decoded.email);
+        console.log("inside useAdmin params", email);
+
+        if (email !== req.decoded.email) {
+          return res.status(401).send({
+            message: "Unauthorize access",
+          });
+        }
+        const query = {
+          email: email,
+        };
+        console.log(query);
+        const user = await userCollection.findOne(query);
+        console.log("inside useAdmin route", user);
+        let admin = false;
+        if (user) {
+          admin = user?.role === "admin";
+        }
+        res.send({ admin });
       }
-      const query = {
-        email: email,
-      };
-      console.log(query);
-      const user = await userCollection.findOne(query);
-      console.log("inside useAdmin route", user);
-      let admin = false;
-      if (user) {
-        admin = user?.role === "admin";
-      }
-      res.send({ admin });
-    });
+    );
 
     app.get("/", (req, res) => {
       res.send("AwsScholars are running");
