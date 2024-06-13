@@ -265,6 +265,17 @@ async function run() {
       const result = await appliedScholarshipCollection.find(query).toArray();
       res.send(result);
     });
+
+    // get applied data based on id
+    app.get("/appliedapplication/:id", async (req, res) => {
+      const id = req.params?.id;
+
+      const query = { scholarshipId: id };
+      console.log("inside single applied ", id, query);
+      const result = await appliedScholarshipCollection.findOne(query);
+
+      res.send(result);
+    });
     // delete applied scholarship
     app.delete("/appliedScholarship/:id", verifytoken, async (req, res) => {
       const id = req.params?.id;
@@ -276,10 +287,11 @@ async function run() {
     });
     // dlete applied
     // save applicant details as appliedScholarships
+    // to do queryn with userEmail
     app.post("/appliedScholarship", async (req, res) => {
       const applieSchoalrshipData = req.body;
       const query = {
-        applicantPhone: applieSchoalrshipData.applicantPhone,
+        userEmail: applieSchoalrshipData.userEmail,
         scholarshipId: applieSchoalrshipData.scholarshipId,
       };
       const isExist = await appliedScholarshipCollection.findOne(query);
