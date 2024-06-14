@@ -209,12 +209,22 @@ async function run() {
     });
     // get reviews for specific id
     app.get("/reviews/:id", verifytoken, async (req, res) => {
-      const id = req.params.id;
+      const id = req.params?.id;
       const query = {
         scholarshipId: id,
       };
       const scholarshipReview = await reviewCollection.find(query).toArray();
       res.send(scholarshipReview);
+    });
+    // get reviews for user email for my reviews sections
+    app.get("/myreviews/:email", verifytoken, async (req, res) => {
+      const email = req.params?.email;
+      console.log("inside my reviews", email);
+      const query = {
+        userEmail: email,
+      };
+      const myReview = await reviewCollection.find(query).toArray();
+      res.send(myReview);
     });
     // GET AVARAGE RATING FROM REVIEW BASED ON SCHOLARSHIP ID
     app.get("/average-rating/:scholarshipID", async (req, res) => {
