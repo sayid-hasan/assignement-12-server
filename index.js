@@ -189,6 +189,14 @@ async function run() {
     });
 
     // review related api
+
+    // insert review from add review in user dashboard
+    app.post("/reviews", verifytoken, async (req, res) => {
+      const review = req?.body;
+
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
     // get top 9
     app.get("/top-reviews", async (req, res) => {
       const result = await reviewCollection
@@ -267,13 +275,41 @@ async function run() {
     });
 
     // get applied data based on id
-    app.get("/appliedapplication/:id", async (req, res) => {
+    app.get("/appliedapplication/:id", verifytoken, async (req, res) => {
       const id = req.params?.id;
 
       const query = { scholarshipId: id };
       console.log("inside single applied ", id, query);
       const result = await appliedScholarshipCollection.findOne(query);
 
+      res.send(result);
+    });
+    // get applied data based on id
+    app.patch("/appliedapplication/:id", verifytoken, async (req, res) => {
+      const id = req.params?.id;
+      const updatedData = req?.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const updatedAppliedApplications = {
+        $set: {
+          applicantPhone: updatedData?.applicantPhone,
+          imageUrl: updatedData?.imageUrl,
+          applicantAddress: updatedData?.applicantAddress,
+          applicantGender: updatedData?.applicantGender,
+          applicantAspiredDegree: updatedData?.applicantAspiredDegree,
+          applicantSscResult: updatedData?.applicantSscResult,
+          applicantHscResult: updatedData?.applicantHscResult,
+          applicantStudyGap: updatedData?.applicantStudyGap,
+          universityName: updatedData?.universityName,
+          scholarshipCategory: updatedData?.scholarshipCategory,
+          subjectCategory: updatedData?.subjectCategory,
+        },
+      };
+      console.log("inside single applied ", id, filter);
+      const result = await appliedScholarshipCollection.updateOne(
+        filter,
+        updatedAppliedApplications
+      );
       res.send(result);
     });
     // delete applied scholarship
