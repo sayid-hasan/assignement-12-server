@@ -216,6 +216,31 @@ async function run() {
       const scholarshipReview = await reviewCollection.find(query).toArray();
       res.send(scholarshipReview);
     });
+    // get applied data based on id
+    app.patch("/reviews/:id", verifytoken, async (req, res) => {
+      const id = req.params?.id;
+      const updatedData = req?.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const updatedReview = {
+        $set: {
+          reviewComment: updatedData?.reviewComment,
+          ratingPoint: updatedData?.ratingPoint,
+        },
+      };
+      console.log("inside single edit update ", id, filter);
+      const result = await reviewCollection.updateOne(filter, updatedReview);
+      res.send(result);
+    });
+    // delete reviews for specific id
+    app.delete("/reviews/:id", verifytoken, async (req, res) => {
+      const id = req.params?.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const scholarshipReview = await reviewCollection.deleteOne(query);
+      res.send(scholarshipReview);
+    });
     // get reviews for user email for my reviews sections
     app.get("/myreviews/:email", verifytoken, async (req, res) => {
       const email = req.params?.email;
