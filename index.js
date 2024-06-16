@@ -78,6 +78,19 @@ async function run() {
       }
       next();
     };
+    // verify moderator after checking verfytoken
+    const verifymoderator = async (req, res, next) => {
+      const email = req.decoded.email;
+      console.log("verify moderator ", email);
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isModerator = user?.role === "moderator";
+      console.log("inside verifymoderator", isModerator);
+      if (!isModerator) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
 
     // jwt related api
 
@@ -480,6 +493,36 @@ async function run() {
           admin = user?.role === "admin";
         }
         res.send({ admin });
+      }
+    );
+
+    // check moderator
+    app.get(
+      "/users/moderator/:email",
+      verifytoken,
+
+      async (req, res) => {
+        const email = req.params.email;
+        console.log("inside moderator route", req.decoded.email);
+        console.log("inside moderator params", email);
+
+        if (email !== req.decoded.email) {
+          return res.status(401).send({
+            message: "Unauthorize access",
+          });
+        }
+        const query = {
+          email: email,
+        };
+        console.log(query);
+        const user = await userCollection.findOne(query);
+        console.log("inside check moderator route", user);
+        let moderator = false;
+        if (user) {
+          moderator = user?.role === "moderator";
+        }
+        console.log(moderator);
+        res.send({ moderator });
       }
     );
 
