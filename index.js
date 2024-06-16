@@ -114,6 +114,65 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+    // make admin/moderator role
+    app.put("/users/admin/:id", verifytoken, verifyadmin, async (req, res) => {
+      const id = req.params.id;
+      const { userRole } = req?.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = {
+        upsert: true,
+      };
+      const updatedDoc = {
+        $set: {
+          role: userRole,
+        },
+      };
+
+      const result = await userCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+    app.delete("/users/:id", verifytoken, verifyadmin, async (req, res) => {
+      const id = req.params?.id;
+      // console.log(filterdata);
+
+      let query = {
+        _id: new ObjectId(id),
+      };
+
+      // console.log(query);
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.get("/users", verifytoken, verifyadmin, async (req, res) => {
+      const filterdata = req.query?.role;
+      console.log(filterdata);
+
+      let query;
+      if (filterdata) {
+        query = {
+          role: filterdata,
+        };
+      }
+      console.log(query);
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // get single user data from db
+    app.get("/users/:email", verifytoken, async (req, res) => {
+      const email = req.params?.email;
+
+      query = {
+        email: email,
+      };
+
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
 
     // scholarship related api
     app.get("/top-sholarship", async (req, res) => {
