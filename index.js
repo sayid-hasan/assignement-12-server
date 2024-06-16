@@ -235,6 +235,7 @@ async function run() {
 
       res.send(result);
     });
+
     // get count for pagination
     app.get("/scholarship-count", async (req, res) => {
       const searchQuery = req.query?.search;
