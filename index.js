@@ -260,6 +260,36 @@ async function run() {
       const result = await scholarshipCollection.findOne(query);
       res.send(result);
     });
+    // update scholarshpi
+    app.patch("/scholarships/:id", verifytoken, async (req, res) => {
+      const id = req.params?.id;
+      const scholarship = req?.body;
+      const filter = {
+        _id: new ObjectId(id),
+      };
+      const updatedData = {
+        $set: {
+          scholarshipName: scholarship?.scholarshipName,
+          universityName: scholarship?.universityName,
+          imageUrl: scholarship?.imageUrl,
+          universityCountry: scholarship?.universityCountry,
+          universityCity: scholarship?.universityCity,
+          universityWorldRank: scholarship?.universityWorldRank,
+          subjectCategory: scholarship?.subjectCategory,
+          scholarshipCategory: scholarship?.scholarshipCategory,
+          degree: scholarship?.degree,
+          tuitionFees: scholarship?.tuitionFees,
+          applicationFees: scholarship?.applicationFees,
+          serviceCharge: scholarship?.serviceCharge,
+          applicationDeadline: scholarship?.applicationDeadline,
+          ScholarshipDetailsField: scholarship?.ScholarshipDetailsField,
+          stipend: scholarship?.stipend,
+        },
+      };
+
+      const result = await scholarshipCollection.updateOne(filter, updatedData);
+      res.send(result);
+    });
 
     // review related api
 
