@@ -252,6 +252,18 @@ async function run() {
       res.send({ count });
     });
     // get single scholarship data v
+    app.post(
+      "/scholarships",
+      verifytoken,
+      verifyModeratorAdmin,
+      async (req, res) => {
+        const scholarship = req?.body;
+
+        const result = await scholarshipCollection.insertOne(scholarship);
+        res.send(result);
+      }
+    );
+    // get single scholarship data v
     app.get("/scholarships/:id", verifytoken, async (req, res) => {
       const id = req.params.id;
       const query = {
@@ -296,6 +308,21 @@ async function run() {
           filter,
           updatedData
         );
+        res.send(result);
+      }
+    );
+    // get single scholarship data v
+    app.delete(
+      "/scholarships/:id",
+      verifytoken,
+      verifyModeratorAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = {
+          _id: new ObjectId(id),
+        };
+        console.log(query, id);
+        const result = await scholarshipCollection.deleteOne(query);
         res.send(result);
       }
     );
