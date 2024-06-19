@@ -336,6 +336,11 @@ async function run() {
       const result = await reviewCollection.insertOne(review);
       res.send(result);
     });
+    // GEt all  review from reviewCollection in moderator admin dashboard
+    app.get("/reviews", verifytoken, verifyModeratorAdmin, async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
     // get top 9
     app.get("/top-reviews", async (req, res) => {
       const result = await reviewCollection
