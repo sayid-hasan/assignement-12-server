@@ -452,6 +452,16 @@ async function run() {
       const result = await appliedScholarshipCollection.find(query).toArray();
       res.send(result);
     });
+    // get all applied application
+    app.get(
+      "/appliedScholarship",
+      verifytoken,
+      verifyModeratorAdmin,
+      async (req, res) => {
+        const result = await appliedScholarshipCollection.find().toArray();
+        res.send(result);
+      }
+    );
 
     // get applied data based on id
     app.get("/appliedapplication/:id", verifytoken, async (req, res) => {
@@ -522,7 +532,61 @@ async function run() {
 
       res.send(result);
     });
+    // cencel application
+    app.patch(
+      "/appliedScholarship/:id",
+      verifytoken,
+      verifyModeratorAdmin,
+      async (req, res) => {
+        const id = req.params?.id;
+        const updatedData = req?.body;
+        // console.log("inside feedback", id, updatedData);
 
+        const filter = { _id: new ObjectId(id) };
+        const updatedFeedback = {
+          $set: {
+            applicationStatus: updatedData?.applicationStatus,
+          },
+        };
+        const options = {
+          upsert: true,
+        };
+        console.log("inside single edit update ", id, filter);
+        const result = await appliedScholarshipCollection.updateOne(
+          filter,
+          updatedFeedback,
+          options
+        );
+        res.send(result);
+      }
+    );
+    // give feed back
+    app.patch(
+      "/appliedScholarship/:id",
+      verifytoken,
+      verifyModeratorAdmin,
+      async (req, res) => {
+        const id = req.params?.id;
+        const updatedData = req?.body;
+        console.log("inside feedback", id, updatedData);
+
+        const filter = { _id: new ObjectId(id) };
+        const updatedFeedback = {
+          $set: {
+            feedback: updatedData?.feedback,
+          },
+        };
+        const options = {
+          upsert: true,
+        };
+        console.log("inside single edit update ", id, filter);
+        const result = await appliedScholarshipCollection.updateOne(
+          filter,
+          updatedFeedback
+        );
+        res.send(result);
+      }
+    );
     // imagekit image Upload getsignature
     app.get("/get-signature", async (req, res) => {
       var imagekit = new ImageKit({
